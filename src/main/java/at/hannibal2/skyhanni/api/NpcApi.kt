@@ -1,4 +1,4 @@
-package at.hannibal2.skyhanni.features.event.npc
+package at.hannibal2.skyhanni.api
 
 import at.hannibal2.skyhanni.api.event.HandleEvent
 import at.hannibal2.skyhanni.events.DialogueResponseSentEvent
