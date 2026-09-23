@@ -4,12 +4,11 @@ import at.hannibal2.skyhanni.SkyHanniMod
 import at.hannibal2.skyhanni.api.event.HandleEvent
 import at.hannibal2.skyhanni.events.chat.SkyHanniChatEvent
 import at.hannibal2.skyhanni.events.entity.EntityClickEvent
+import at.hannibal2.skyhanni.features.event.npc.NpcApi
 import at.hannibal2.skyhanni.skyhannimodule.SkyHanniModule
-import at.hannibal2.skyhanni.utils.HypixelCommands
 import at.hannibal2.skyhanni.utils.MobUtils.mob
 import at.hannibal2.skyhanni.utils.RegexUtils.matches
 import at.hannibal2.skyhanni.utils.SimpleTimeMark
-import at.hannibal2.skyhanni.utils.SkyBlockUtils
 import at.hannibal2.skyhanni.utils.repopatterns.RepoPattern
 import net.minecraft.world.entity.LivingEntity
 import kotlin.time.Duration.Companion.seconds
@@ -49,7 +48,7 @@ object CarnivalQuickStart {
         }
         if (lastClicked.passedSince() < 1.seconds) return
         lastClicked = SimpleTimeMark.now()
-        HypixelCommands.npcOption(type, "r_2_1")
+        NpcApi.sendNpcResponse(type, "r_2_1")
         event.cancel()
     }
 

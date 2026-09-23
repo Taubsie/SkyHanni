@@ -6,12 +6,12 @@ import at.hannibal2.skyhanni.api.event.HandleEvent.Companion.HIGHEST
 import at.hannibal2.skyhanni.config.storage.Resettable
 import at.hannibal2.skyhanni.data.IslandType
 import at.hannibal2.skyhanni.data.jsonobjects.repo.HoppityEggLocationsJson
+import at.hannibal2.skyhanni.events.DialogueResponseSentEvent
 import at.hannibal2.skyhanni.events.GuiContainerEvent
 import at.hannibal2.skyhanni.events.InventoryCloseEvent
 import at.hannibal2.skyhanni.events.InventoryFullyOpenedEvent
 import at.hannibal2.skyhanni.events.InventoryUpdatedEvent
 import at.hannibal2.skyhanni.events.IslandChangeEvent
-import at.hannibal2.skyhanni.events.MessageSendToServerEvent
 import at.hannibal2.skyhanni.events.RepositoryReloadEvent
 import at.hannibal2.skyhanni.events.chat.SkyHanniChatEvent
 import at.hannibal2.skyhanni.events.hoppity.EggFoundEvent
@@ -54,6 +54,7 @@ import at.hannibal2.skyhanni.utils.SkyblockSeasonModifier
 import at.hannibal2.skyhanni.utils.StringUtils.removeColor
 import at.hannibal2.skyhanni.utils.compat.ColoredBlockCompat.Companion.isStainedGlassPane
 import at.hannibal2.skyhanni.utils.compat.formattedTextCompatLeadingWhiteLessResets
+import at.hannibal2.skyhanni.utils.compat.getStringOrDefault
 import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.Items
 import kotlin.time.Duration.Companion.seconds
@@ -100,11 +101,19 @@ object HoppityApi {
     )
 
     /**
-     * REGEX-TEST: /selectnpcoption hoppity r_2_1
+     * REGEX-TEST: hoppity
      */
-    val pickupOutgoingCommandPattern by CFApi.patternGroup.pattern(
-        "hoppity.call.pickup.outgoing",
-        "\\/selectnpcoption hoppity r_2_1",
+    val hoppityNpcIdPattern by CFApi.patternGroup.pattern(
+        "hoppity.npc.id",
+        "hoppity",
+    )
+
+    /**
+     * REGEX-TEST: r_2_1
+     */
+    val hoppityAcceptResponsePattern by CFApi.patternGroup.pattern(
+        "hoppity.response.accept",
+        "r_2_1",
     )
 
     /**
@@ -261,8 +270,18 @@ object HoppityApi {
     }
 
     @HandleEvent(onlyOnSkyblock = true)
-    fun onCommandSend(event: MessageSendToServerEvent) {
-        if (!pickupOutgoingCommandPattern.matches(event.message)) return
+    fun onDialogueResponseSent(event: DialogueResponseSentEvent) {
+        val packet = event.packet
+
+        val isHoppityAccept = packet.payload()
+            .flatMap { it.asCompound() }
+            .map {
+                hoppityNpcIdPattern.matches(it.getStringOrDefault("npcId")) &&
+                    hoppityAcceptResponsePattern.matches(it.getStringOrDefault("responseKey"))
+            }
+            .orElse(false)
+        if (isHoppityAccept != true) return
+
         checkNextInvOpen = true
     }
 
