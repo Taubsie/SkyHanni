@@ -54,7 +54,6 @@ import at.hannibal2.skyhanni.utils.SkyblockSeasonModifier
 import at.hannibal2.skyhanni.utils.StringUtils.removeColor
 import at.hannibal2.skyhanni.utils.compat.ColoredBlockCompat.Companion.isStainedGlassPane
 import at.hannibal2.skyhanni.utils.compat.formattedTextCompatLeadingWhiteLessResets
-import at.hannibal2.skyhanni.utils.compat.getStringOrDefault
 import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.Items
 import kotlin.time.Duration.Companion.seconds
@@ -271,16 +270,9 @@ object HoppityApi {
 
     @HandleEvent(onlyOnSkyblock = true)
     fun onDialogueResponseSent(event: DialogueResponseSentEvent) {
-        val packet = event.packet
-
-        val isHoppityAccept = packet.payload()
-            .flatMap { it.asCompound() }
-            .map {
-                hoppityNpcIdPattern.matches(it.getStringOrDefault("npcId")) &&
-                    hoppityAcceptResponsePattern.matches(it.getStringOrDefault("responseKey"))
-            }
-            .orElse(false)
-        if (isHoppityAccept != true) return
+        if (!hoppityNpcIdPattern.matches(event.npcId) ||
+            !hoppityAcceptResponsePattern.matches(event.responseKey)
+        ) return
 
         checkNextInvOpen = true
     }

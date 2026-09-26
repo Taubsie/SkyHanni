@@ -5,8 +5,8 @@ import at.hannibal2.skyhanni.events.DialogueResponseSentEvent
 import at.hannibal2.skyhanni.events.minecraft.packet.PacketSentEvent
 import at.hannibal2.skyhanni.skyhannimodule.SkyHanniModule
 import at.hannibal2.skyhanni.utils.RegexUtils.matches
+import at.hannibal2.skyhanni.utils.compat.MinecraftCompat
 import at.hannibal2.skyhanni.utils.repopatterns.RepoPattern
-import net.minecraft.client.Minecraft
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.protocol.common.ServerboundCustomClickActionPacket
 import net.minecraft.resources.Identifier
@@ -14,7 +14,7 @@ import java.util.Optional
 
 @SkyHanniModule
 object NpcApi {
-    val patternGroup = RepoPattern.group("npc")
+    val patternGroup = RepoPattern.group("npc-api")
 
     /**
      * REGEX-TEST: skyblock:dialogue_response
@@ -29,7 +29,16 @@ object NpcApi {
         val packet = event.packet as? ServerboundCustomClickActionPacket ?: return
         if (!dialogueResponseIdPattern.matches(packet.id().toString())) return
 
-        DialogueResponseSentEvent(packet).post()
+        val (npcId, responseKey) = packet.payload()
+            .flatMap { it.asCompound() }
+            ?.map {
+                it.getString("npcId").orElse(null) to
+                    it.getString("responseKey").orElse(null)
+            }?.orElse(null) ?: return
+
+        if(npcId == null || responseKey == null) return
+
+        DialogueResponseSentEvent(npcId, responseKey).post()
     }
 
     fun sendNpcResponse(npcId: String, responseKey: String) {
@@ -37,7 +46,7 @@ object NpcApi {
         optionTag.putString("npcId", npcId)
         optionTag.putString("responseKey", responseKey)
 
-        Minecraft.getInstance().player?.connection?.send(
+        MinecraftCompat.localPlayerOrNull?.connection?.send(
             ServerboundCustomClickActionPacket(Identifier.parse(dialogueResponseIdPattern.toString()), Optional.of(optionTag))
         )
     }
