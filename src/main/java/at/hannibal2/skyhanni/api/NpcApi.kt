@@ -36,9 +36,9 @@ object NpcApi {
                     it.getString("responseKey").orElse(null)
             }?.orElse(null) ?: return
 
-        if(npcId == null || responseKey == null) return
+        if (npcId == null || responseKey == null) return
 
-        if(DialogueResponseSentEvent(npcId, responseKey).post().isCancelled) {
+        if (DialogueResponseSentEvent(npcId, responseKey).post().isCancelled) {
             event.cancel()
         }
     }
