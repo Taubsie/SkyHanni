@@ -38,7 +38,9 @@ object NpcApi {
 
         if(npcId == null || responseKey == null) return
 
-        DialogueResponseSentEvent(npcId, responseKey).post()
+        if(DialogueResponseSentEvent(npcId, responseKey).post().isCancelled) {
+            event.cancel()
+        }
     }
 
     fun sendNpcResponse(npcId: String, responseKey: String) {
